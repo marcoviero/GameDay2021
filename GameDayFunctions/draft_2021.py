@@ -553,10 +553,12 @@ class Draft:
 
         for irename in range(len(player_list)):
             # Standardize name
-            player_list.iloc[irename]['PLAYER'] = standardize_name(player_list.iloc[irename]['PLAYER'])
+            name = standardize_name(player_list.iloc[irename]['Name'])
+            first_name = name.split(' ')[0]
+            last_name = name.split(' ')[1]
 
             # Find matching player
-            idx_match = [i for i, x in enumerate(self.remaining_ranked_players['PLAYER'].str.match(player_list.PLAYER.iloc[irename])) if x]
+            idx_match = [i for i, x in enumerate(self.remaining_ranked_players['PLAYER'].str.contains(first_name+'&'+last_name)) if x]
             # Remove from self.remaining_ranked_players
             self.remaining_ranked_players = self.remaining_ranked_players.drop(index=self.remaining_ranked_players.index[idx_match])
 

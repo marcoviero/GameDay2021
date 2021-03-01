@@ -19,7 +19,7 @@ class Simulation:
                  projection_type = 'ZiPS',
                  ranking_method = 'FantasyPros',
                  path_projections = 'projections/',
-                 year = 2020,
+                 year = 2021,
                  number_teams = 12,
                  number_sims = 50,
                  path_sims = 'simulations/',
