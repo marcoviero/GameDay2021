@@ -42,27 +42,11 @@ class Projection:
         self.hitters_stats = pd.DataFrame()
 
         # Read in Batters by Position for Year and Position
-        if ranking_method == 'Yahoo':
-            ranking_file = 'Yahoo_Roto_Ranking_'+str(year)+'.xlsx'
-        elif ranking_method == 'RotoGraphs':
-            ranking_file = 'RotoGraphsPositionalRankings'+str(year)+'.xlsx'
-        elif ranking_method == 'ESPN':
-            ranking_file = 'ESPN_Roto_Ranking_Full_'+str(year)+'.xlsx'
-        elif ranking_method == 'FantasyPros':
-            #ranking_file = 'FantasyPros_Avg_Std_'+str(year)+'.xlsx'
-            ranking_file = 'FantasyPros_Roto_Ranking_' + str(year) + '.xlsx'
-
+        ranking_file = ranking_method + '_Roto_Ranking_' + str(year) + '.xlsx'
 
         # Use Rankings of choice; Yahoo, ESPN, FantasyPros
-        #pdb.set_trace()
-        #xls = pd.ExcelFile(os.path.join(path_data+str(year)+'/PositionalRankings/'+ranking_method+'/',ranking_file))
-        xls = os.path.join(path_data+str(year)+'/PositionalRankings/'+ranking_method+'/',ranking_file)
-        if ranking_method == 'FantasyPros':
-            #pdb.set_trace()
-            #self.all_rank = pd.read_excel(xls, skiprows = 0, names = ['Rank','PLAYER','EligiblePosition','AVE','STD'], index_col = 'Rank')
-            self.all_rank = pd.read_excel(xls, skiprows = 0, index_col = 'Rank')
-        else:
-            self.all_rank = pd.read_excel(xls, skiprows = 0, names = ['Rank','PLAYER','EligiblePosition'], index_col = 'Rank')
+        xls = os.path.join(path_data+str(year)+'/PositionalRankings/'+ranking_method+'/', ranking_file)
+        self.all_rank = pd.read_excel(xls, skiprows = 0, index_col = 'RANK')
         for irename in range(len(self.all_rank)):
             self.all_rank.iloc[irename]['PLAYER'] = remove_special_characters(self.all_rank.iloc[irename]['PLAYER'])
 
