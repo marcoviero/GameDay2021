@@ -228,11 +228,11 @@ class Draft:
                 if iteam == self.draft_position:
                     best_pick, best_position, best_placement, best_score = self.find_best_pick(iteam, teams_copy, df_copy, round_key, silent = silent, search_depth = search_depth)
                     self.drafted_team[round_key] = df_copy.index[best_pick-1], df_copy.iloc[best_pick-1]['PLAYER'], best_position, best_placement, best_score
-                    teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, force_pick = best_pick, force_position = best_position, silent = silent)
+                    teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, round_key, force_pick = best_pick, force_position = best_position, silent = silent)
                 else:
-                    teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, shuffle_picks = shuffle_picks, silent = silent)
+                    teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, round_key, shuffle_picks = shuffle_picks, silent = silent)
             else:
-                teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, shuffle_picks = shuffle_picks, silent = silent)
+                teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, round_key, shuffle_picks = shuffle_picks, silent = silent)
 
         return teams_copy, df_copy
 
@@ -267,7 +267,7 @@ class Draft:
             for iteam in draft_order:
                 if sum(teams_copy[iteam]['roster_spots'].values()) == 0:
                     pdb.set_trace()
-                teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, shuffle_picks = shuffle_picks)
+                teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, iround, shuffle_picks = shuffle_picks)
 
         return teams_copy, df_copy
 
@@ -442,7 +442,7 @@ class Draft:
         return best_pick_plus_one, best_position, best_player, best_placement, best_score
 
     # Strategy is to take the best possible player, even if that means putting them in UTIL or BN (maybe BN should reconsidered...)
-    def draft_next_best(self, team_key, teams, df, force_pick = False, force_position = False, shuffle_picks = False, search_depth = 1, silent = True):
+    def draft_next_best(self, team_key, teams, df, round_number, force_pick = False, force_position = False, shuffle_picks = False, search_depth = 1, silent = True):
 
         if (force_pick == False):
 
@@ -457,11 +457,19 @@ class Draft:
             idx_eligible, pos_eligible = self.idx_unfilled_positions(df, unfilled_positions, search_depth = search_depth)
             #pdb.set_trace()
 
-            idx_shuffle = np.arange(len(idx_eligible))
+            #idx_shuffle = np.arange(len(idx_eligible))
             if shuffle_picks == True:
-                np.random.shuffle(idx_shuffle)
-                idx_eligible = idx_eligible[idx_shuffle]
-                pos_eligible = [pos_eligible[x] for x in idx_shuffle]
+                #pdb.set_trace()
+                if round_number % 2 == 1:
+                    pick_number = 0 + (round_number * self.number_teams) + (self.number_teams - team_key)
+                else:
+                    pick_number = 1 + (round_number * self.number_teams) + team_key
+                #idx_eligible = idx_eligible[np.argsort((1 / (1 + np.exp(-(pick_number - np.random.normal(df.iloc[idx_eligible]['AVG'], df.iloc[idx_eligible]['STD DEV']))))))[::-1]]
+                idx_eligible = idx_eligible[np.argsort((1 / (1 + np.exp(-(pick_number - np.random.normal(df.iloc[idx_eligible]['AVG'], df.iloc[idx_eligible]['STD DEV']))/df.iloc[idx_eligible]['STD DEV']))))[::-1]]
+                #np.random.shuffle(idx_shuffle)
+                #idx_eligible = idx_eligible[idx_shuffle]
+                #pos_eligible = [pos_eligible[x] for x in idx_shuffle]
+                #pdb.set_trace()
 
             # Draft next in list by making indices of unfilled_positions and taking first (or shuffle)
             try:
@@ -515,7 +523,7 @@ class Draft:
                 player_list,drafted_player=player_list.drop(player_list.iloc[0:1].index),player_list.iloc[0]
                 #pdb.set_trace()
                 best_position = self.get_optimal_position(drafted_player['EligiblePosition'], teams_copy[iteam]['roster_spots'])
-                teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, force_pick = idx_match[0] + 1, force_position = best_position)
+                teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, iround, force_pick = idx_match[0] + 1, force_position = best_position)
                 if len(player_list) == 0:
                     break
             if len(player_list) == 0:
@@ -528,7 +536,7 @@ class Draft:
 
         best_pick, best_position, best_placement, best_score = self.find_best_pick(iteam+iter_team,copy.deepcopy(teams_copy),copy.deepcopy(df_copy),iround,silent=False,autodraft_depth = autodraft_depth, search_depth = search_depth)
         best_player_this_round = df_copy.iloc[best_pick-1].PLAYER
-        teams_copy, df_copy = self.draft_next_best(iteam+iter_team, teams_copy, df_copy, force_pick = best_pick, force_position = best_position)
+        teams_copy, df_copy = self.draft_next_best(iteam+iter_team, teams_copy, df_copy, iround, force_pick = best_pick, force_position = best_position)
 
         # Finish the draft and Rank
         teams_copy, df_copy = self.draft_remaining(teams_copy, df_copy, iround, autodraft_depth = autodraft_depth, shuffle_picks = shuffle_picks)
