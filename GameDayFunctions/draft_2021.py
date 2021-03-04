@@ -370,7 +370,9 @@ class Draft:
             else:
                 punfilled = iunfilled
             if iunfilled == 'C':
-                idx_position = [i for i, val in enumerate(df_copy['Elig. Pos.'].str.contains('C') & ~df_copy['Elig. Pos.'].str.contains('CF')) if val]
+                #pdb.set_trace()
+                #idx_position = [i for i, val in enumerate(df_copy['Elig. Pos.'].str.contains('C') & !df_copy['Elig. Pos.'].str.contains('CF')) if val]
+                idx_position = [i for i, val in enumerate((df_copy['Elig. Pos.'].str.contains('C')==True) & (df_copy['Elig. Pos.'].str.contains('CF')==False)) if val]
             else:
                 idx_position = [i for i, val in enumerate(df_copy['Elig. Pos.'].str.contains(punfilled)) if val]
             jdx = 0
