@@ -3,6 +3,8 @@ import os
 import copy
 import numpy as np
 import pandas as pd
+from datetime import date
+
 pd.options.mode.chained_assignment = None
 
 class Draft:
@@ -31,6 +33,7 @@ class Draft:
         # self.roster_spots{"fielders":{'C':1,'1B':1,'2B':1, '3B':1,'SS':1,'OF':3,'UTIL':1},
         #                   "pitchers":{'SP':2,'RP':2,'P':3}
         #                    "bench":{'BN':5}}
+        self.roster_spots = roster_spots
         self.fielders = ['C','1B','2B','3B','SS','OF','UTIL']
         self.pitchers = ['SP', 'RP', 'P']
         for i in np.arange(number_teams):
@@ -194,6 +197,8 @@ class Draft:
             elif (roster_spots['BN'] > 0):
                 return 'BN'
             else:
+                print(positions_in)
+                print(roster_spots)
                 pdb.set_trace()
                 return 0
         else:
@@ -485,19 +490,72 @@ class Draft:
 
             pick = force_pick - 1
             df,drafted_player=df.drop(df.iloc[pick:pick+1].index),df.iloc[pick:pick+1]
+
             teams[team_key] = self.draft_into_teams(teams[team_key], drafted_player, position = force_position, silent = True)
             if silent == False:
                 print('Team '+ str(team_key+1) +' picking '+drafted_player.iloc[0].PLAYER+' for '+force_position)
 
         return teams, df
 
+    def print_draft_positions(self, draft_position, number_players = None):
+        nrounds = sum(self.roster_spots.values())
+        if number_players == None:
+            number_players = nrounds * number_teams
+
+        cnt = 0
+        draft_positions = []
+        while cnt < number_players:
+            for iround in np.arange(nrounds):
+                # Reverse draft order every other round
+                draft_order = np.arange(1,self.number_teams+1)
+                if iround % 2 == 1:
+                    draft_order = draft_order[::-1]
+
+                for i in np.arange(self.number_teams):
+                    draft_positions.append(draft_order[i])
+                    cnt = cnt + 1
+                    if cnt == number_players:
+                        break
+                if cnt == number_players:
+                        break
+
+        return draft_positions
+
+    def start_new_draft(self,path_draft='Draft_Pick_Spreadsheets/',
+                        path_model='projections/2021/PositionalRankings/',
+                        model='FantasyPros', file_date=None,year=2021, overwrite=False):
+        file = model + '_Roto_Ranking_' + str(year) + '.xlsx'
+        df = pd.read_excel(os.path.join(path_model, model, file))
+        dp = self.print_draft_positions(self.draft_position, number_players=len(df))
+        df['Team'] = dp
+        df['Picks'] = ''
+        #df = df[['RANK', 'Team', 'Picks', 'PLAYER', 'AVG', 'STD DEV', 'Elig. Pos.']]
+        #df = df[['Team','RANK', 'AVG', 'STD DEV', 'Picks', 'PLAYER', 'Elig. Pos.' ]]
+        df = df[['Picks', 'Team', 'PLAYER', 'Elig. Pos.','AVG', 'STD DEV' ]]
+
+        if file_date == None:
+            today = date.today()
+            suf = '_'+model+'_'+today.strftime("%m%d%Y")
+        else:
+            suf = '_'+model+file_date
+        ending = '.xlsx'
+        fileout = 'LiveDraft_' + suf + '.xlsx'
+        if os.path.isfile(os.path.join(path_draft, fileout)) == False or overwrite == True:
+            df.to_excel(os.path.join(path_draft, fileout), index=False)
+
+        return fileout
+
     def draft_from_list_and_find_best_pick(self, search_depth = 1, autodraft_depth = 'end', path_list = 'Draft_Pick_Spreadsheets/', draft_pick_file = 'TestPicks.xlsx', shuffle_picks = False, silent = False):
         # Read in Excel Sheet and draft picks before moving on to finishing script
 
         # Read current draft results
         xls = pd.ExcelFile(os.path.join(path_list,draft_pick_file))
-        complete_player_list = pd.read_excel(xls, skiprows =0, names = ['Pick','PLAYER','EligiblePosition'], index_col = 'Pick')
+        #pdb.set_trace()
+        #complete_player_list = pd.read_excel(xls, skiprows = 0, names = ['Pick','PLAYER','EligiblePosition'], index_col = 'Pick')
+        #complete_player_list = pd.read_excel(xls, skiprows = 0, names = ['RANK','Picks','PLAYER','AVG','STD DEV','Elig. Pos.'], index_col = 'Picks')
+        complete_player_list = pd.read_excel(xls,index_col='Picks')
         # Remove players from list who don't have numbers (i.e., NANs)
+        #pdb.set_trace()
         player_list = complete_player_list.loc[complete_player_list.index.dropna().values].sort_index()
 
         # Replace non-latin characters so lists agree
@@ -520,9 +578,10 @@ class Draft:
                 #print('Drafting Team '+str(iteam+1))
                 # Find player matching df_copy by iloc
                 idx_match = [i for i, x in enumerate(df_copy['PLAYER'].str.match(player_list.PLAYER.iloc[0])) if x]
-                player_list,drafted_player=player_list.drop(player_list.iloc[0:1].index),player_list.iloc[0]
+                player_list, drafted_player = player_list.drop(player_list.iloc[0:1].index), player_list.iloc[0]
                 #pdb.set_trace()
-                best_position = self.get_optimal_position(drafted_player['EligiblePosition'], teams_copy[iteam]['roster_spots'])
+                #best_position = self.get_optimal_position(drafted_player['EligiblePosition'], teams_copy[iteam]['roster_spots'])
+                best_position = self.get_optimal_position(drafted_player['Elig. Pos.'], teams_copy[iteam]['roster_spots'])
                 teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, iround, force_pick = idx_match[0] + 1, force_position = best_position)
                 if len(player_list) == 0:
                     break
