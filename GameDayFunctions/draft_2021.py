@@ -270,8 +270,8 @@ class Draft:
 
             # Finish the draft by picking the next best player in an open position
             for iteam in draft_order:
-                if sum(teams_copy[iteam]['roster_spots'].values()) == 0:
-                    pdb.set_trace()
+                #if sum(teams_copy[iteam]['roster_spots'].values()) == 0:
+                #    pdb.set_trace()
                 teams_copy, df_copy = self.draft_next_best(iteam, teams_copy, df_copy, iround, shuffle_picks = shuffle_picks)
 
         return teams_copy, df_copy
@@ -301,7 +301,8 @@ class Draft:
             iplayer = df_loop.iloc[iposition].PLAYER
 
             # Prevent picking someone you could easily get in later round
-            pick_ok, pick_number = self.sigmoid_probability_fn(iposition,teams_copy,team_key,df_copy,round_key)
+            #pick_ok, pick_number = self.sigmoid_probability_fn(iposition,teams_copy,team_key,df_copy,round_key)
+            pick_ok, pick_number = self.projected_pick_floor(iposition,teams_copy,team_key,df_copy,round_key)
             #pdb.set_trace()
 
             # Draft looping through idx_eligible
@@ -324,6 +325,7 @@ class Draft:
             # [5] = roto_standings_ascn
 
             # Store the result.
+            #pdb.set_trace()
             if (pick_ok == True) or (n_eligible_positions < 2):
                 player_based_drafted_teams[iplayer] = teams_loop[self.draft_position]['roster']
                 player_based_drafted_outcomes[iplayer] = [roto_stats[4],roto_stats[3][self.draft_position]] #[roto_stats[4],roto_stats[3][roto_stats[4]-1]]
@@ -333,6 +335,7 @@ class Draft:
             else:
                 if silent == False:
                     print('Not Storing Result for Pick '+str(icounter)+' ['+str(pick_number)+'/'+str(drafted_player.index[0])+'] '+iplayer+' '+pos_eligible[icounter])
+                    #pdb.set_trace()
 
             #pdb.set_trace()
 
@@ -477,15 +480,23 @@ class Draft:
                 #pdb.set_trace()
 
             # Draft next in list by making indices of unfilled_positions and taking first (or shuffle)
-            try:
+            #try:
+            #    df,drafted_player=df.drop(df.iloc[idx_eligible[0]:idx_eligible[0]+1].index),df.iloc[idx_eligible[0]:idx_eligible[0]+1]
+
+            #    if sum(teams[team_key]['roster_spots'].values()) > 0:
+            #        teams[team_key] = self.draft_into_teams(teams[team_key], drafted_player, silent = True)
+            #        if silent == False:
+            #            print('Team '+ str(team_key+1) +' Drafting '+drafted_player.iloc[0].PLAYER)
+            #except:
+            #    pdb.set_trace()
+
+            if sum(teams[team_key]['roster_spots'].values()) > 0:
                 df,drafted_player=df.drop(df.iloc[idx_eligible[0]:idx_eligible[0]+1].index),df.iloc[idx_eligible[0]:idx_eligible[0]+1]
-            except:
-                pdb.set_trace()
 
-            teams[team_key] = self.draft_into_teams(teams[team_key], drafted_player, silent = True)
-            if silent == False:
-                print('Team '+ str(team_key+1) +' Drafting '+drafted_player.iloc[0].PLAYER)
-
+                teams[team_key] = self.draft_into_teams(teams[team_key], drafted_player, silent = True)
+                if silent == False:
+                    print('Team '+ str(team_key+1) +' Drafting '+drafted_player.iloc[0].PLAYER)
+                    
         else:
 
             pick = force_pick - 1
@@ -631,6 +642,20 @@ class Draft:
             # Remove from self.remaining_ranked_players
             self.remaining_ranked_players = self.remaining_ranked_players.drop(index=self.remaining_ranked_players.index[idx_match])
 
+    def projected_pick_floor(self,iposition,teams_in,team_key_in,df_in,round_number):
+
+        if round_number % 2 == 1:
+            pick_number = 0+(round_number * self.number_teams) + (self.number_teams - team_key_in)
+            next_pick_number = 1 + ((round_number+1) * self.number_teams) + team_key_in
+        else:
+            pick_number = 1+(round_number * self.number_teams) + team_key_in
+            next_pick_number = 0+((round_number+1) * self.number_teams) + (self.number_teams - team_key_in)
+
+        possible_pick = df_in.iloc[iposition:iposition+1]
+        # Is the next pick number larger than lowest possible?
+        pick_ok = next_pick_number > (possible_pick['AVG'] - possible_pick['STD DEV']).values[0]
+
+        return pick_ok, pick_number
 
     def sigmoid_probability_fn(self,iposition,teams_in,team_key_in,df_in,round_number):
         pick_ok = True

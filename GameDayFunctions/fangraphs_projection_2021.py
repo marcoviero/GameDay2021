@@ -159,13 +159,14 @@ class Projection:
 
         # Relievers saves and blown saves
         ind_rp = self.pitchers_stats['EligiblePosition'].str.contains('RP')
-        self.pitchers_stats['SV'] = 0
-        self.pitchers_stats['SV'][ind_rp] = np.floor(
-            self.pitchers_stats['IP'][ind_rp] * 0.5 * (1. / self.pitchers_stats['WHIP'][ind_rp]))
+        if 'SV' not in self.pitchers_stats.columns:
+            self.pitchers_stats['SV'] = 0
+            self.pitchers_stats['SV'][ind_rp] = np.floor(
+                self.pitchers_stats['IP'][ind_rp] * 0.5 * (1. / self.pitchers_stats['WHIP'][ind_rp]))
 
         self.pitchers_stats['BSV'] = 0
-        self.pitchers_stats['BSV'][ind_rp] = np.floor(
-            self.pitchers_stats['IP'][ind_rp] * 0.05 * (1. / self.pitchers_stats['WHIP'][ind_rp]))
+        self.pitchers_stats['BSV'][ind_rp] = np.floor(0.1 * self.pitchers_stats['WHIP'][ind_rp] * self.pitchers_stats['SV'])
+            #self.pitchers_stats['IP'][ind_rp] * 0.05 * (1. / self.pitchers_stats['WHIP'][ind_rp]))
 
 
 def remove_special_characters(name_in):
