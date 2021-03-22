@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e2acdad6-4b31-4e6c-8470-77f9f31b7ed3" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GameDayFunctions/draft_2021.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameDayFunctions/draft_2021.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameDayFunctions/gameday_simulation_2021.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameDayFunctions/gameday_simulation_2021.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameDay_Live.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/GameDay_Live.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameDay_Live_GUI.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/GameDay_Live_GUI.ipynb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GameDay_Notebook.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/GameDay_Notebook.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

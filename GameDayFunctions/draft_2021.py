@@ -553,7 +553,7 @@ class Draft:
         #pdb.set_trace()
         #complete_player_list = pd.read_excel(xls, skiprows = 0, names = ['Pick','PLAYER','EligiblePosition'], index_col = 'Pick')
         #complete_player_list = pd.read_excel(xls, skiprows = 0, names = ['RANK','Picks','PLAYER','AVG','STD DEV','Elig. Pos.'], index_col = 'Picks')
-        complete_player_list = pd.read_excel(xls,index_col='Picks')
+        complete_player_list = pd.read_excel(xls,index_col='Pick')
         # Remove players from list who don't have numbers (i.e., NANs)
         #pdb.set_trace()
         player_list = complete_player_list.loc[complete_player_list.index.dropna().values].sort_index()
