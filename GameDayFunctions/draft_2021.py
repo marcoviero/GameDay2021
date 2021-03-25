@@ -45,7 +45,7 @@ class Draft:
             self.teams[i] = roto_stats
 
         if filter_injured_players == True:
-            self.filter_injured_list(path_list = "Injured_List_Spreadsheets/", injured_list_file = 'Injuries2021.xlsx')
+            self.filter_injured_list(path_list = "Injured_List_Spreadsheets/", injured_list_file = 'Injuries_2021.xlsx')
 
     # Find Resulting Standings
     def tabulate_roto(self, teams):
@@ -326,6 +326,7 @@ class Draft:
 
             # Store the result.
             #pdb.set_trace()
+            keep_picking = True
             if (pick_ok == True) or (n_eligible_positions < 2):
                 player_based_drafted_teams[iplayer] = teams_loop[self.draft_position]['roster']
                 player_based_drafted_outcomes[iplayer] = [roto_stats[4],roto_stats[3][self.draft_position]] #[roto_stats[4],roto_stats[3][roto_stats[4]-1]]
@@ -336,6 +337,9 @@ class Draft:
                 if silent == False:
                     print('Not Storing Result for Pick '+str(icounter)+' ['+str(pick_number)+'/'+str(drafted_player.index[0])+'] '+iplayer+' '+pos_eligible[icounter])
                     #pdb.set_trace()
+                    keep_picking = False
+            if keep_picking == False:
+                break
 
             #pdb.set_trace()
 
@@ -496,7 +500,7 @@ class Draft:
                 teams[team_key] = self.draft_into_teams(teams[team_key], drafted_player, silent = True)
                 if silent == False:
                     print('Team '+ str(team_key+1) +' Drafting '+drafted_player.iloc[0].PLAYER)
-                    
+
         else:
 
             pick = force_pick - 1
@@ -619,7 +623,7 @@ class Draft:
         # Return Player Name and Projected Roto Stats
         return best_player_this_round, roto_stats
 
-    def filter_injured_list(self, path_list = "Injured_List_Spreadsheets/", injured_list_file = 'Injuries2021.xlsx'):
+    def filter_injured_list(self, path_list = "Injured_List_Spreadsheets/", injured_list_file = 'Injuries_2021.xlsx'):
         # Read in Excel Sheet of Players to Exclude.  Should this be moved to Projection?  Yes.
 
 
